@@ -1,4 +1,5 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="br">
 
@@ -20,22 +21,21 @@
       <ul id="nav-mobile" class="left hide-on-med-and-down">
         <li><a href="{% url 'list_to_do' %}"><i class="fas fa-list-ul text-white fa-2x"></i></a></li>
         <li><a href="{% url 'new_to_do' %}"><i class="fas fa-plus text-white fa-2x"></i></a></li>
-
       </ul>
-        {% if user.is_authenticated %}
+
+      {% if user.is_authenticated %}
         <div class="text-right">
             <button type="button" class="btn btn-warning" >User: {{ user.get_username }}</button>
             <a class="btn btn-outline-info" href="{% url 'logout' %}" role="button">Log Out</a>
-        {% endif %}
-
         </div>
+      {% endif %}
     </div>
   </nav>
   <br>
   <div class="container">
-      {% block content %}
-      {% endblock %}
-</div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    {% block content %}
+    {% endblock %}
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 </body>
 </html>
