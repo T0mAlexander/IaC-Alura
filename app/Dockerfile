@@ -5,7 +5,7 @@ COPY . /usr/src/app
 
 #Definindo o diretorio onde o CMD será executado e copiando o arquivo de requerimentos
 WORKDIR /usr/src/app
-COPY .env requirements.txt ./
+COPY requirements.txt ./
 
 # Instalando os requerimentos com o PIP
 RUN pip install --no-cache-dir -r requirements.txt
