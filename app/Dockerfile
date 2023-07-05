@@ -1,4 +1,4 @@
-FROM python
+FROM python:latest
 
 #Copiando os arquivos do projeto para o diretorio usr/src/app 
 COPY . /usr/src/app
