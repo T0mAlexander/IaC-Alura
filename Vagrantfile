@@ -30,6 +30,7 @@ Vagrant.configure("2") do |config|
   # config.vm.network "forwarded_port", guest: 9001, host:9001
 
   #* Instalações e configurações via terminal
+  config.vm.provision "shell", path: "./scripts/python.sh"
   config.vm.provision "shell", path: "./scripts/jenkins.sh" # Instalando o Jenkins
 
   config.vm.provision "shell", inline: "chmod +x /vagrant/scripts/*" # Concessão de permissões de execução a pasta de scripts
@@ -41,4 +42,5 @@ Vagrant.configure("2") do |config|
 
   #* Sincronização e compartilhamento de pastas
   config.vm.synced_folder "./configs/", "/configs" # Pasta de configuração
+  config.vm.synced_folder "./app", "/home/vagrant/app" # Pasta de configuração
 end
