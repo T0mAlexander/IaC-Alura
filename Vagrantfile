@@ -30,7 +30,7 @@ Vagrant.configure("2") do |config|
   # config.vm.network "forwarded_port", guest: 9001, host:9001
 
   #* Instalações e configurações via terminal
-  config.vm.provision "shell", path: "./scripts/python.sh"
+  config.vm.provision "shell", path: "./scripts/python.sh" # Instalando o Python
   config.vm.provision "shell", path: "./scripts/jenkins.sh" # Instalando o Jenkins
 
   config.vm.provision "shell", inline: "chmod +x /vagrant/scripts/*" # Concessão de permissões de execução a pasta de scripts
@@ -38,7 +38,6 @@ Vagrant.configure("2") do |config|
 
   config.vm.provision "shell", path: "./scripts/mysql-server.sh" # Instalando o MySQL Server
   config.vm.provision "shell", inline: "cat /configs/mysqld.cnf > /etc/mysql/mysql.conf.d/mysqld.cnf" # Copiando configurações do MySQL
-  config.vm.provision "shell", inline: "service mysql restart" # Reiniciando o serviço do MySQL
 
   #* Sincronização e compartilhamento de pastas
   config.vm.synced_folder "./configs/", "/configs" # Pasta de configuração
