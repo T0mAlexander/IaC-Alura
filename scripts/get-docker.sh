@@ -86,7 +86,6 @@ deprecation_notice() {
 	echo "    The distribution, $distro, will no longer be supported in this script as of $date."
 	echo "    If you feel this is a mistake please submit an issue at https://github.com/docker/docker-install/issues/new"
 	echo
-	sleep 10
 }
 
 get_distribution() {
@@ -249,7 +248,6 @@ do_install() {
 
 			You may press Ctrl+C now to abort this script.
 		EOF
-		( set -x; sleep 20 )
 	fi
 
 	user="$(id -un 2>/dev/null || true)"

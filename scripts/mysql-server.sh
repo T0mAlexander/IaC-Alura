@@ -1,8 +1,9 @@
-sudo apt install mysql-server
-mysql -e "create user 'devops'@'%' identified by '123';"  && \
-mysql -e "create user 'devops_dev'@'%' identified by '123';"  && \
-mysql -e "create database todo;" && \
-mysql -e "create database todo_dev;" && \
-mysql -e "create database test_todo_dev;" && \
-mysql -e "grant all privileges on *.* to devops@'%' identified by '123';" && \
-mysql -e "grant all privileges on *.* to devops_dev@'%' identified by '123';"
+sudo apt install mysql-server -y
+sudo mysql -e "CREATE USER 'devops'@'%' IDENTIFIED BY 'devops';" && \
+sudo mysql -e "CREATE USER 'devops_dev'@'%' IDENTIFIED BY 'devops';" && \
+sudo mysql -e "CREATE DATABASE todo;" && \
+sudo mysql -e "CREATE DATABASE todo_dev;" && \
+sudo mysql -e "CREATE DATABASE test_todo_dev;" && \
+sudo mysql -e "GRANT ALL PRIVILEGES ON *.* to devops@'%';" && \
+sudo mysql -e "GRANT ALL PRIVILEGES ON *.* to devops_dev@'%';" && \
+sudo mysql -e "FLUSH PRIVILEGES;"
