@@ -6,7 +6,7 @@
 #todo - Instalar plugins do Docker e Config File Provider
 #todo - Ativar o cloud do Docker
 #todo - Criar .env-dev e .env-prod
-#todo - Inserir variavel .env-dev no Build Environment do Job com target "./app/.env"
+#todo - Inserir variavel .env-dev no Build Environment do Job com target ".env"
 #todo - Deletar workspace antes de executar a build
 
 #? Build Shell 1
@@ -28,10 +28,10 @@ docker run -d -p 82:8000 -v /var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqld.s
 -v /var/lib/jenkins/workspace/lista-de-tarefas/app/:/usr/src/app/ --name=lista-tarefas-teste django_todolist_image_build
 
 echo "-------- Localizando .env no container --------"
-docker exec -i lista-tarefas-teste la to_do/ | grep .env
+docker exec -i lista-tarefas-teste ls -a | grep .env
 
 echo "-------- Testando .env --------"
-docker exec -i lista-tarefas-teste cat to_do/ .env
+docker exec -i lista-tarefas-teste cat .env
 
 echo "-------- Testando a imagem --------"
 docker exec -i lista-tarefas-teste python manage.py test --keep
