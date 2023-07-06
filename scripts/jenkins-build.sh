@@ -33,7 +33,7 @@ echo "-------- Testando .env --------"
 docker exec -i lista-tarefas-teste cat to_do/.env
 
 echo "-------- Atualizando o pip --------"
-docker exec -i lista-tarefas-teste pip install --upgrade pip
+docker exec -i lista-tarefas-teste pip install --upgrade pip --user
 
 echo "-------- Testando a imagem --------"
 docker exec -i lista-tarefas-teste python manage.py test --keep
