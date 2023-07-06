@@ -27,4 +27,4 @@ docker pull hadolint/hadolint
 #todo 3 - sudo systemctl daemon-reload
 #todo 4 - sudo systemctl restart docker.service
 
-#! - Inserir a URI "tcp://127.0.0.1:2376" na cloud do Docker dentro do Jenkins 
+#! - Inserir o Host URI "tcp://127.0.0.1:2376" e marcar "Enabled" na cloud do Docker dentro do Jenkins 

@@ -1,5 +1,15 @@
+cd app
 sudo apt-get update && sudo apt-get install swapspace python3 python3-pip \
 python3-dev libmysqlclient-dev python3-venv build-essential libssl-dev libffi-dev unzip -y
+
+pip3 install virtualenv nose coverage nosexcover pylint
+virtualenv --always-copy venv-django-todolist
+source venv-django-todolist/bin/activate
+pip install -r requirements.txt
+
+python /app/manage.py makemigrations
+python /app/manage.py migrate
+#todo - python manage.py createsuperuser
 
 ### TODO Configurações do app ###
 
