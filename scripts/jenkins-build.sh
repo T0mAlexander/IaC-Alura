@@ -30,10 +30,10 @@ docker run -d -p 82:8000 -v /var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqld.s
 # docker exec -i lista-tarefas-teste la to_do/ | grep .env
 
 echo "-------- Testando .env --------"
-docker exec -i lista-tarefas-teste cat to_do/.env
+docker exec -i lista-tarefas-teste cat .env
 
 echo "-------- Atualizando o pip --------"
-docker exec -i lista-tarefas-teste pip install --upgrade pip --user
+docker exec -i lista-tarefas-teste pip install --upgrade pip
 
 echo "-------- Testando a imagem --------"
 docker exec -i lista-tarefas-teste python manage.py test --keep
