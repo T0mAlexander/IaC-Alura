@@ -23,11 +23,11 @@ Vagrant.configure("2") do |config|
   #* Encaminhamento de portas
   config.vm.network "forwarded_port", guest: 8080, host: 8080 # Porta do Jenkins
   config.vm.network "forwarded_port", guest: 3306, host: 3306 # Porta do MySQL
-  # config.vm.network "forwarded_port", guest: 9000, host: 9000
-  # config.vm.network "forwarded_port", guest: 81, host: 81
-  # config.vm.network "forwarded_port", guest: 80, host: 80
-  # config.vm.network "forwarded_port", guest: 19999, host: 19999
-  # config.vm.network "forwarded_port", guest: 9001, host:9001
+  config.vm.network "forwarded_port", guest: 9000, host: 9000
+  config.vm.network "forwarded_port", guest: 81, host: 81 # Porta do app em ambiente de desenvolvimento
+  config.vm.network "forwarded_port", guest: 80, host: 80
+  config.vm.network "forwarded_port", guest: 19999, host: 19999
+  config.vm.network "forwarded_port", guest: 9001, host:9001
 
   #* Instalações e configurações via terminal
   config.vm.provision "shell", path: "./scripts/python.sh" # Instalando o Python
