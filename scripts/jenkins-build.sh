@@ -22,16 +22,18 @@ docker run --rm -i hadolint/hadolint < Dockerfile
 
 #? Build Shell 3
 #!/bin/sh
-
 echo "-------- Subindo o container de teste --------"
 docker run -d -p 82:8000 -v /var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqld.sock \
 -v /var/lib/jenkins/workspace/lista-de-tarefas/app/:/usr/src/app/ --name=lista-tarefas-teste django_todolist_image_build
 
-echo "-------- Localizando .env no container --------"
-docker exec -i lista-tarefas-teste ls -a | grep .env
+# echo "-------- Localizando .env no container --------"
+# docker exec -i lista-tarefas-teste la to_do/ | grep .env
 
 echo "-------- Testando .env --------"
-docker exec -i lista-tarefas-teste cat .env
+docker exec -i lista-tarefas-teste cat to_do/ .env
+
+echo "-------- Atualizando o pip --------"
+docker exec -i lista-tarefas-teste pip install --upgrade pip
 
 echo "-------- Testando a imagem --------"
 docker exec -i lista-tarefas-teste python manage.py test --keep
