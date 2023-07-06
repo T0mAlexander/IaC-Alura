@@ -8,7 +8,7 @@ WORKDIR /usr/src/app
 COPY requirements.txt ./
 
 # Instalando os requerimentos com o PIP
-RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Expondo a porta da APP
 EXPOSE 8000
