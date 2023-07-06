@@ -6,10 +6,10 @@
 #todo - Instalar plugins do Docker e Config File Provider
 #todo - Ativar o cloud do Docker
 #todo - Criar .env-dev e .env-prod
-#todo - Inserir variavel .env-dev no Build Environment do Job com target ".env"
+#todo - Inserir variavel .env-dev no Build Environment do Job com target "./app/.env"
 #todo - Deletar workspace antes de executar a build
 
-#? Build Step 1
+#? Build Shell 1
 echo "-------- Validando a sintaxe do Dockerfile --------"
 cd app
 cat Dockerfile
@@ -20,7 +20,7 @@ docker run --rm -i hadolint/hadolint < Dockerfile
 #* Cloud: docker
 #* Img Docker: django_todolist_image_build
 
-#? Build Step 3
+#? Build Shell 3
 #!/bin/sh
 
 echo "-------- Subindo o container de teste --------"
@@ -28,10 +28,10 @@ docker run -d -p 82:8000 -v /var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqld.s
 -v /var/lib/jenkins/workspace/lista-de-tarefas/app/:/usr/src/app/ --name=lista-tarefas-teste django_todolist_image_build
 
 echo "-------- Localizando .env no container --------"
-docker exec -i lista-tarefas-teste ls -a | grep .env
+docker exec -i lista-tarefas-teste la to_do/ | grep .env
 
 echo "-------- Testando .env --------"
-docker exec -i lista-tarefas-teste cat .env
+docker exec -i lista-tarefas-teste cat to_do/ .env
 
 echo "-------- Testando a imagem --------"
 docker exec -i lista-tarefas-teste python manage.py test --keep
