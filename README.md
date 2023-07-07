@@ -1,4 +1,4 @@
-# Jenkins e Docker
+vc# Jenkins e Docker
 
 ## Descrição
 
@@ -332,7 +332,7 @@ Repositório relacionado ao curso "Jenkins e Docker: pipeline de entrega contín
 
 - **3.3.1** Insira as seguintes informações abaixo
 
-  ![Docker Build Info](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/docker-build-info.png?raw=true)
+  ![Docker Build Local](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/build-local-dockerfile.png?raw=true)
 
   > **INFORMAÇÕES**
   >
@@ -342,7 +342,7 @@ Repositório relacionado ao curso "Jenkins e Docker: pipeline de entrega contín
   >
   > **Imagem do Docker** *(Image)*: **django_todolist_image_build**
 
-- **3.3.2** Habilite o push da imagem e adicione as credenciais da sua conta do [**DockerHub**](https://hub.docker.com) no Jenkins
+<!-- - **3.3.2** Habilite o push da imagem e adicione as credenciais da sua conta do [**DockerHub**](https://hub.docker.com) no Jenkins
 
   ![Push e Credenciais](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/push-e-credenciais.png?raw=true)
 
@@ -358,7 +358,7 @@ Repositório relacionado ao curso "Jenkins e Docker: pipeline de entrega contín
   >
   > **ID customizado** *(ID)*: apelido para identificar a credencial dentro do contexto do Jenkins
   >
-  > **Descrição** *(Description)*: descrição para a credencial
+  > **Descrição** *(Description)*: descrição para a credencial -->
 
 - **3.4** Adicione outro shell script
 
