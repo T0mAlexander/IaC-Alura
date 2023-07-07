@@ -5,7 +5,7 @@ sudo service docker restart
 docker pull hadolint/hadolint
 sudo mkdir -p /etc/systemd/system/docker.service.d/
 
-cat << EOF > /etc/systemd/system/docker.service.d/override.conf
+sudo cat << EOF > /etc/systemd/system/docker.service.d/override.conf
 [Service]
 ExecStart=
 ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2376

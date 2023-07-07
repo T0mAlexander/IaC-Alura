@@ -5,7 +5,7 @@ sudo apt-get install swapspace python3 python3-pip \
 cd app
 pip3 install virtualenv nose coverage nosexcover pylint django
 virtualenv --always-copy django-app
-source django-app/bin/activate
+source venv-django-app/bin/activate
 pip3 install -r requirements.txt
 
 cat << EOF > .env
