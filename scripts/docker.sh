@@ -1,17 +1,18 @@
-# Instalando o docker
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
-
-# Concedendo permissões para o Docker
 sudo usermod -aG docker vagrant
-
-# Reiniciando o serviço do Docker
 sudo service docker restart
-
-# TODO: Reconecte-se a VM para executar o docker sem a palavra-chave 'sudo'
-
-# Obtendo a imagem "hadolint"
 docker pull hadolint/hadolint
+sudo mkdir -p /etc/systemd/system/docker.service.d/
+
+cat << EOF > /etc/systemd/system/docker.service.d/override.conf
+[Service]
+ExecStart=
+ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2376
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl restart docker.service
 
 #TODO - Exposição do daemon do Docker pós instalação
 

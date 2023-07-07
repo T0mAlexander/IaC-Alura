@@ -6,7 +6,7 @@
 - Instalar plugins do Docker e Config File Provider
 - Ativar o cloud do Docker
 - Criar .env-dev e .env-prod
-- Inserir variavel .env-dev no Build Environment do Job com target ".env"
+- Inserir variavel .env-dev no Build Environment do Job com target "./app/.env"
 - Deletar workspace antes de executar a build
 
 #? Build Shell 1

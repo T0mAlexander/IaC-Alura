@@ -1,15 +1,56 @@
+sudo apt-get update -y
+sudo apt-get install swapspace python3 python3-pip \
+  python3-dev libmysqlclient-dev python3-venv build-essential \
+  libssl-dev libffi-dev unzip -y
 cd app
-sudo apt-get update && sudo apt-get install swapspace python3 python3-pip \
-python3-dev libmysqlclient-dev python3-venv build-essential libssl-dev libffi-dev unzip -y
+pip3 install virtualenv nose coverage nosexcover pylint django
+virtualenv --always-copy django-app
+source django-app/bin/activate
+pip3 install -r requirements.txt
 
-pip3 install virtualenv nose coverage nosexcover pylint
-virtualenv --always-copy venv-django-todolist
-source venv-django-todolist/bin/activate
-pip install -r requirements.txt
+cat << EOF > .env
+[config]
+# Secret configuration
+SECRET_KEY=r*5ltfzw-61ksdm41fuul8+hxs$86yo9%k1%k=(!@=-wv4qtyv
 
-python /app/manage.py makemigrations
-python /app/manage.py migrate
-#todo - python manage.py createsuperuser
+# Configs
+DEBUG=True
+
+# Database
+DB_NAME=todo_dev
+DB_USER=devops_dev
+DB_PASSWORD=devops
+DB_HOST=localhost
+DB_PORT=3306
+EOF
+
+cat << EOF > to_do/.env
+[config]
+# Secret configuration
+SECRET_KEY=r*5ltfzw-61ksdm41fuul8+hxs$86yo9%k1%k=(!@=-wv4qtyv
+
+# Configs
+DEBUG=True
+
+# Database
+DB_NAME=todo
+DB_USER=devops
+DB_PASSWORD=devops
+DB_HOST=localhost
+DB_PORT=3306
+EOF
+
+python3 manage.py makemigrations
+python3 manage.py migrate
+
+cd to_do/
+
+python3 ../manage.py makemigrations
+python3 ../manage.py migrate
+
+cd ..
+
+#todo - python3 manage.py createsuperuser
 
 ### TODO Configurações do app ###
 
@@ -82,5 +123,5 @@ python /app/manage.py migrate
 
 #TODO Verificando e executando servidor
 
-#todo python manage.py runserver 0:8000
+#todo python3 manage.py runserver 0:8000
 #todo - URL do server: http://192.168.56.10:8000
