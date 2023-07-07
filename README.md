@@ -1,4 +1,4 @@
-vc# Jenkins e Docker
+# Jenkins e Docker
 
 ## Descrição
 
@@ -440,3 +440,217 @@ Repositório relacionado ao curso "Jenkins e Docker: pipeline de entrega contín
 - **3.7** Execute a primeira build
 
   ![Primeira Build](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/executar-build.png?raw=true)
+
+### 4. Crie uma pipeline
+
+  ![Criando pipeline](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/criando-pipeline.png?raw=true)
+
+- **4.1.1** Parametrize a pipeline com uma string
+
+  ![Param String Pipeline](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/param-pipeline-string.png?raw=true)
+
+- **4.1.2** Dê um nome a string e defina o valor padrão como `tcp://127.0.0.1:2376`
+
+  ![dados string pipeline](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/dados-string1.png?raw=true)
+
+  > **AVISO:** o nome da string será importante para um script nos próximos passos, portanto escolha um nome simples e semântico
+
+- **4.1.3** Adicione um novo parâmetro de string apenas com o campo **"*Name*"** preenchido
+
+  ![String 2](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/string2-sem-value.png?raw=true)
+
+  > **Explicação:** o valor padrão *(Default Value)* não necessitará ser preenchido pois ele receberá a imagem do Docker do trabalho criado anteriormente
+
+- **4.2** Dê scroll até o campo **"*Script*"** da seção **"*Pipeline*"**
+
+  ![Pipeline Script](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/pipeline-script.png?raw=true)
+
+- **4.2.1** Copie e cole o script de teste abaixo e em seguida, salve as configurações da pipeline
+
+  ```groovy
+  pipeline {
+
+    agent any
+
+    stages {
+      stage('Mensagem de boas vindas') {
+        steps {
+          sh 'echo "Olá, Jenkins e Docker"'
+        }
+      }
+    }
+  }
+  ```
+
+  > **Informação:** a linguagem do script é o Groovy, compatível com o Java
+
+- **4.2.3** Faça build da pipeline
+
+  ![botao build pipeline](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/build-da-pipeline.png?raw=true)
+
+- **4.2.4** Execute a build sem informar uma imagem como parâmetro
+
+  ![pipeline build sem params](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/build-pipeline-sem-params.png?raw=true)
+
+  > **Nota:** nos relatórios do estágio de build da pipeline, irá retornar um **"Olá Jenkins e Docker"**
+
+  ![msg teste pipeline](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/msg-teste-pipeline.png?raw=true)
+
+- **4.3** Volte ao campo de script, copie e cole o código abaixo:
+
+  <details>
+  <summary>Trecho do código</summary>
+
+    ```groovy
+    pipeline {
+      environment {
+        DOCKER_IMAGE = "${<NOME-STRING-IMG>}"
+      }
+
+      agent any
+
+      stages {
+
+        stage('Carregando variáveis de desenvolvimento') {
+          steps {
+            configFileProvider([configFile(fileId: '<ID-.ENV-DEV>', variable: 'env')]) {
+              sh 'cat $env > .env'
+            }
+          }
+        }
+
+        stage('Encerrando o container antigo') {
+          steps {
+            script {
+              try {
+                sh 'docker rm -f <NOME-CONTAINER>'
+              } catch (Exception e) {
+                sh "echo $e"
+              }
+            }
+          }
+        }
+
+        stage('Construindo o container novo') {
+          steps {
+            script {
+              try {
+                sh "docker run -d -p 81:8000 -v /var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqld.sock -v /var/lib/jenkins/workspace/<NOME-WS>/app/:/usr/src/app/ --name=<NOME-CONTAINER> ${DOCKER_IMAGE}:latest"
+              } catch (Exception e) {
+                slackSend (color: 'error', message: "[ FALHA ] Não foi possivel subir o container - ${BUILD_URL} em ${currentBuild.duration}s", tokenCredentialId: '<ID-SLACK-TOKEN>')
+                sh "echo $e"
+                currentBuild.result = 'ABORTED'
+                error('Erro')
+              }
+            }
+          }
+        }
+
+        stage('Notificando o canal do Slack') {
+          steps {
+            slackSend (color: 'good', message: '[ Sucesso ] O novo build esta disponivel em: http://<IP-DA-MAQUINA>:81/ ', tokenCredentialId: '<ID-SLACK-TOKEN>')
+          }
+        }
+      }
+    }
+    ```
+
+    > **LEGENDA DAS VARIÁVEIS**:
+    >
+    >***NOME-STRING-IMG***: Nome da string referente a imagem do Docker
+    >
+    >***ID-.ENV-DEV***: UUID gerado pelo Jenkins do arquivo de variáveis de desenvolvimento
+    >
+    >***NOME-CONTAINER***: Nome para o container. Recomenda-se terminar com **-dev** para diferenciar
+    >
+    >***NOME-WS***: Nome da pasta do workspace do trabalho (job) criando anteriormente
+    >
+    >***ID-SLACK-TOKEN***: ID da credencial global referente ao token do Slack
+    >
+    >***IP-DA-MAQUINA***: IP da máquina virtual
+  </details>
+
+- **4.3.1** Execute a build informando a imagem a associada a sua conta no DockerHub
+
+  > **Requisitos:** upload da imagem `django_todolist_image_build` para associação sua conta no DockerHub
+
+  ![push com img pipeline](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/pipeline-com-build-params.png?raw=true)
+
+> **Nota:** em caso de sucesso, o bot do Jenkins no Slack irá fornecer a URL da aplicação
+
+- **4.4** No terminal, acesse o container em modo interativo
+
+  ```bash
+  docker exec -it <nome-do-container> bash
+  ```
+
+- **4.4.1** Execute os seguintes comandos
+
+  ```bash
+  python3 manage.py makemigrations
+  python3 manage.py migrate
+  ```
+
+- **4.4.2** Crie um super usuário para acessar a aplicação
+
+  ```bash
+  python3 manage.py createsuperuser
+  ```
+
+### 5. Crie um trabalho de produção
+
+  ![criando job prod](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/criando-job-prod.png?raw=true)
+
+  > **Info:** assim como o trabalho de desenvolvimento, este também será do tipo Projeto Livre
+
+- **5.1** Adicione um parâmetro pro host do Docker com o valor `tcp://127.0.0.1:2376`
+
+  ![dados string pipeline](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/dados-string1.png?raw=true)
+
+- **5.1.1** Adicione um parâmetro chamado **"*DockerImage*"** com valor vazio
+
+  ![String 2](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/string2-sem-value.png?raw=true)
+
+- **5.2** No Build Steps, selecione **"*Provide configuration files*"**
+
+![config file build step](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/config-file-step.png?raw=true)
+
+- **5.2.1** Escolha o arquivo `.env_prod` e informe a pasta-alvo como `./app/.env`
+
+  ![config file ajustes](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/config-file-ajustes-prod.png?raw=true)
+
+- **5.3** Adicione um shell script e cole o código abaixo:
+
+  ```bash
+  #!/bin/sh
+  { \
+    docker run -d -p 80:8000 \
+      -v /var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqld.sock \
+      -v /var/lib/jenkins/workspace/<NOME-WS>/app/to_do/:/usr/src/app/to_do/ \
+      --name=<NOME-CONTAINER> ${<NOME-STRING-IMG}:latest \
+  } || { # catch
+    docker rm -f <NOME-CONTAINER>
+    docker run -d -p 80:8000 \
+      -v /var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqld.sock \
+      -v /var/lib/jenkins/workspace/<NOME-WS>/app/to_do/:/usr/src/app/to_do/ \
+      --name=<NOME-CONTAINER> ${<NOME-STRING-IMG}:latest \
+  }
+  ```
+
+  > **LEGENDA DAS VARIÁVEIS**:
+  >
+  >***NOME-CONTAINER***: Nome para o container. Recomenda-se  terminar com **-prod** para diferenciar
+  >
+  >***NOME-STRING-IMG***: Nome da string referente a imagem do Docker
+  >
+  >***NOME-WS***: Nome da pasta do workspace do trabalho atual
+
+- **5.3.1** No pós build, selecione notificações do Slack apenas de sucesso ou falha
+
+  ![notificações pós build](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/pos-build-job-prod.png?raw=true)
+
+- **5.3.2** Execute a build inserindo a imagem do Docker associada a sua conta
+
+  ![build prod](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/build-prod.png?raw=true)
+
+> **Nota:** em caso de sucesso, a aplicação estará na porta 80 do IP da sua máquina
