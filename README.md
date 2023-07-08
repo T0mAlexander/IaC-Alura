@@ -623,17 +623,18 @@ Repositório relacionado ao curso "Jenkins e Docker: pipeline de entrega contín
 
   ```bash
   #!/bin/sh
-  { \
+  {
     docker run -d -p 80:8000 \
       -v /var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqld.sock \
-      -v /var/lib/jenkins/workspace/<NOME-WS>/app/to_do/:/usr/src/app/to_do/ \
-      --name=<NOME-CONTAINER> ${<NOME-STRING-IMG}:latest \
-  } || { # catch
-    docker rm -f <NOME-CONTAINER>
+      -v /var/lib/jenkins/workspace/<NOME-WS>/app/:/usr/src/app/to_do/.env \
+      --name=django-app-prod ${DockerImage}:latest
+  } || {
+    # catch
+    docker rm -f django-app-prod
     docker run -d -p 80:8000 \
       -v /var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqld.sock \
-      -v /var/lib/jenkins/workspace/<NOME-WS>/app/to_do/:/usr/src/app/to_do/ \
-      --name=<NOME-CONTAINER> ${<NOME-STRING-IMG}:latest \
+      -v /var/lib/jenkins/workspace/<NOME-WS>/app/:/usr/src/app/to_do/.env \
+      --name=django-app-prod ${DockerImage}:latest
   }
   ```
 
@@ -654,3 +655,117 @@ Repositório relacionado ao curso "Jenkins e Docker: pipeline de entrega contín
   ![build prod](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/build-prod.png?raw=true)
 
 > **Nota:** em caso de sucesso, a aplicação estará na porta 80 do IP da sua máquina
+
+### 6. Integrando os trabalhos
+
+- **6.1** Vá nas configurações do primeiro trabalho e desça até a seção **"*Post-build Actions*"**
+
+- **6.1.1** Parametrize o trabalho informando o Host `tcp://127.0.0.1:2376` e a imagem associada a sua conta no DockerHub
+
+  ![params app principal](https://raw.githubusercontent.com/T0mAlexander/CICD-Alura/89fb0184b1e37302bfd82109d880060b9fb65ade/params-app-principal.png)
+
+- **6.1.2** Clique na opção **"*Trigger parameterized build on other projects*"**
+
+  ![passar parametros](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/passar-parametros-p%C3%B3s-build.png?raw=true)
+
+- **6.1.3** Selecione o ambiente de desenvolvimento
+
+  ![informando app](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/informando-app-dev.png?raw=true)
+
+- **6.1.4** Logo abaixo, clique no botão **"*Add Parameters*"** e clique na opção **"*Predefined parameters*"** para adicionar um sub-parâmetro
+
+  ![sub param](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/params-predef.png?raw=true)
+
+- **6.1.5** Passe como parâmetro o nome da string referente a imagem do Docker e salve
+
+  ![param string docker img](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/img-docker-params.png?raw=true)
+
+  > **❓** Esta parte é responsável por automatizar o processo de informar uma imagem do Docker para outros trabalhos (jobs) ao executar builds
+
+- **6.2** Vá na sessão da pipeline de desenvolvimento e atualize o script por este abaixo:
+
+  <details>
+  <summary>Script atualizado</summary>
+
+  ```groovy
+  pipeline {
+    environment {
+      DOCKER_IMAGE = "${<NOME-STRING-IMG>}"
+    }
+
+    agent any
+
+    stages {
+      stage('Carregando variáveis de desenvolvimento') {
+        steps {
+          configFileProvider([configFile(fileId: '<ID-CREDENCIAL-ENV>', variable: 'env')]) {
+            sh 'cat $env > .env'
+          }
+        }
+      }
+
+      stage('Encerrando o container antigo') {
+        steps {
+          script {
+            try {
+              sh 'docker rm -f <NOME-CONTAINER>'
+            } catch (Exception e) {
+              sh "echo $e"
+            }
+          }
+        }
+      }
+
+      stage('Subindo o container novo') {
+        steps {
+          script {
+            try {
+              sh 'docker run -d -p 81:8000 -v /var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqld.sock -v /var/lib/jenkins/workspace/<NOME-WS>/.env:/usr/src/app/to_do/.env --name=<NOME-CONTAINER> ' + DOCKER_IMAGE + ':latest'
+            } catch (Exception e) {
+              slackSend (color: 'error', message: "[ FALHA ] Não foi possível subir o container - ${BUILD_URL} em ${currentBuild.duration}s", tokenCredentialId: '<TOKEN-DO-SLACK>')
+              sh "echo $e"
+              currentBuild.result = 'ABORTED'
+              error('Erro')
+            }
+          }
+        }
+      }
+
+      stage('Notificando o usuário') {
+        steps {
+          slackSend (color: 'good', message: '[ Sucesso ] O novo build está disponível em: <IP-DA-MAQUINA>:81/ ', tokenCredentialId: '<TOKEN-DO-SLACK>')
+        }
+      }
+
+      stage ('Implantação em produção?') {
+        steps {
+          script {
+            slackSend (color: 'warning', message: "Para aplicar a mudança em produção, acesse [Janela de 5 minutos]: ${JOB_URL}", tokenCredentialId: '<TOKEN-DO-SLACK>')
+            timeout(time: 5, unit: 'MINUTES') {
+              input(id: "Deploy Gate", message: "Implantar em produção?", ok: 'Deploy')
+            }
+          }
+        }
+      }
+
+      stage ('Implantação/Deploy') {
+        steps {
+          script {
+            try {
+              build job: '<NOME-JOB-PRODUÇÃO>', parameters: [[$class: 'StringParameterValue', name: '<NOME-STRING-IMG>', value: DOCKER_IMAGE]]
+            } catch (Exception e) {
+              slackSend (color: 'error', message: "[ FALHA ] Não foi possível subir o container em produção - ${BUILD_URL}", tokenCredentialId: '<TOKEN-DO-SLACK>')
+              sh "echo $e"
+              currentBuild.result = 'ABORTED'
+              error('Erro')
+            }
+          }
+        }
+      }
+    }
+  }
+  ```
+
+  </details>
+
+- **6.3** Faça alterações em qualquer arquivo da aplicação e faça commit para o Gitub
