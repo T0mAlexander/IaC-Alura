@@ -682,7 +682,7 @@ Repositório relacionado ao curso "Jenkins e Docker: pipeline de entrega contín
 
   > **❓** Esta parte é responsável por automatizar o processo de informar uma imagem do Docker para outros trabalhos (jobs) ao executar builds
 
-- **6.2** Vá na sessão da pipeline de desenvolvimento e atualize o script por este abaixo:
+- **6.2** Na pipeline de desenvolvimento, atualize o script copiando e colando o código abaixo:
 
   <details>
   <summary>Script atualizado</summary>
@@ -690,39 +690,46 @@ Repositório relacionado ao curso "Jenkins e Docker: pipeline de entrega contín
   ```groovy
   pipeline {
     environment {
-      DOCKER_IMAGE = "${<NOME-STRING-IMG>}"
+      DOCKER_IMAGE = "${<NOME DA STRING DA IMAGEM DOCKER}"
+      NOME_STRING_IMG = "NOME DA STRING DA IMAGEM DOCKER"
+      NOME_WS = 'NOME DA PASTA DO WORKSPACE'
+      SLACK_TOKEN = 'ID DA CREDENCIAL DO TOKEN DO SLACK'
+      CONTAINER_NAME = '<NOME DO CONTAINER'
+      ENV_ID = '<ID DA CREDENCIAL DO ARQUIVO .ENV>'
+      PROD_JOB_NAME = '<NOME DO JOB DE PRODUÇÃO>'
+      DEPLOY_GATE_ID = 'deployGate'
+      VM_IP = '<IP DA MAQUINA VIRTUAL>'
     }
-
     agent any
 
     stages {
       stage('Carregando variáveis de desenvolvimento') {
         steps {
-          configFileProvider([configFile(fileId: '<ID-CREDENCIAL-ENV>', variable: 'env')]) {
+          configFileProvider([configFile(fileId: ENV_ID, variable: 'env')]) {
             sh 'cat $env > .env'
           }
         }
       }
-
-      stage('Encerrando o container antigo') {
+      
+      stage('Derrubando o container antigo') {
         steps {
           script {
             try {
-              sh 'docker rm -f <NOME-CONTAINER>'
+              sh "docker rm -f ${CONTAINER_NAME}"
             } catch (Exception e) {
               sh "echo $e"
             }
           }
         }
       }
-
+      
       stage('Subindo o container novo') {
         steps {
           script {
             try {
-              sh 'docker run -d -p 81:8000 -v /var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqld.sock -v /var/lib/jenkins/workspace/<NOME-WS>/.env:/usr/src/app/to_do/.env --name=<NOME-CONTAINER> ' + DOCKER_IMAGE + ':latest'
+              sh "docker run -d -p 81:8000 -v /var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqld.sock -v /var/lib/jenkins/workspace/${NOME_WS}/app/:/usr/src/app/to_do/.env --name=${CONTAINER_NAME} ${DOCKER_IMAGE}:latest"
             } catch (Exception e) {
-              slackSend (color: 'error', message: "[ FALHA ] Não foi possível subir o container - ${BUILD_URL} em ${currentBuild.duration}s", tokenCredentialId: '<TOKEN-DO-SLACK>')
+              slackSend (color: 'error', message: "[ FALHA ] Não foi possivel subir o container - ${BUILD_URL} em ${currentBuild.duration}s", tokenCredentialId: SLACK_TOKEN)
               sh "echo $e"
               currentBuild.result = 'ABORTED'
               error('Erro')
@@ -730,31 +737,31 @@ Repositório relacionado ao curso "Jenkins e Docker: pipeline de entrega contín
           }
         }
       }
-
-      stage('Notificando o usuário') {
+      
+      stage('Notificando o canal do Slack') {
         steps {
-          slackSend (color: 'good', message: '[ Sucesso ] O novo build está disponível em: <IP-DA-MAQUINA>:81/ ', tokenCredentialId: '<TOKEN-DO-SLACK>')
+          slackSend (color: 'good', message: '[ Sucesso ] O novo build esta disponivel em: ${VM_IP}:81/', tokenCredentialId: SLACK_TOKEN)
         }
       }
-
-      stage ('Implantação em produção?') {
+      
+      stage ('Implantar em produção?') {
         steps {
           script {
-            slackSend (color: 'warning', message: "Para aplicar a mudança em produção, acesse [Janela de 5 minutos]: ${JOB_URL}", tokenCredentialId: '<TOKEN-DO-SLACK>')
-            timeout(time: 5, unit: 'MINUTES') {
-              input(id: "Deploy Gate", message: "Implantar em produção?", ok: 'Deploy')
+            slackSend (color: 'warning', message: "Para aplicar a mudança em produção, acesse [Janela de 10 minutos]: ${JOB_URL}", tokenCredentialId: SLACK_TOKEN)
+            timeout(time: 10, unit: 'MINUTES') {
+              input(id: DEPLOY_GATE_ID, message: 'Deploy em produção?', ok: 'Deploy')
             }
           }
         }
       }
-
+      
       stage ('Implantação/Deploy') {
         steps {
           script {
             try {
-              build job: '<NOME-JOB-PRODUÇÃO>', parameters: [[$class: 'StringParameterValue', name: '<NOME-STRING-IMG>', value: DOCKER_IMAGE]]
+              build job: PROD_JOB_NAME, parameters: [[$class: 'StringParameterValue', name: NOME_STRING_IMG, value: DOCKER_IMAGE]]
             } catch (Exception e) {
-              slackSend (color: 'error', message: "[ FALHA ] Não foi possível subir o container em produção - ${BUILD_URL}", tokenCredentialId: '<TOKEN-DO-SLACK>')
+              slackSend (color: 'error', message: "[ FALHA ] Não foi possivel subir o container em producao - ${BUILD_URL}", tokenCredentialId: SLACK_TOKEN)
               sh "echo $e"
               currentBuild.result = 'ABORTED'
               error('Erro')
@@ -768,4 +775,93 @@ Repositório relacionado ao curso "Jenkins e Docker: pipeline de entrega contín
 
   </details>
 
-- **6.3** Faça alterações em qualquer arquivo da aplicação e faça commit para o Gitub
+- **6.2.1** No 3° passo da build, coloque a imagem associada a sua conta do DockerHub
+
+  ![alterando passo 3](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/alterando-passo-3.png?raw=true)
+
+- **6.2.2** Faça alterações em qualquer arquivo da aplicação e faça commit para o Github
+
+- **6.2.3** Ao fazer commit, iniciará uma cadeia de builds e você será perguntado se deseja fazer deploy/implantação na versão de produção
+
+  ![aprovar deploy](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/aprovar-deploy.png?raw=true)
+
+### 7. Instalando e utilizando o SonarQube
+
+- **7.1** No terminal da máquina virtual, construa o container com o SonarQube na porta 9000
+
+  ```bash
+  docker run -d --name sonarqube -p 9000:9000 sonarqube:lts
+  ```
+
+- **7.1.1** Inicialize o SonarQube na porta 9000 da máquina virtual
+
+  ![iniciando sonarqube](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/sonarqube-iniciando.png?raw=true)
+
+- **7.1.2** Faça login no SonarQube
+
+  ![login sonarqube](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/login-sonarqube.png?raw=true)
+
+  > **INFO:** o usuário e senha é **"*admin*"**
+
+- **7.1.3** Redefina a senha para acessar o SonarQube
+
+  ![redefinir senha sonarqube](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/nova-senha-sonarqube.png?raw=true)
+
+- **7.1.4** Crie um projeto manualmente
+
+  ![projeto manual](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/criar-proj-manual-sonarqube.png?raw=true)
+
+- **7.1.5** Insira os dados do projeto
+
+ ![projeto sonarqube](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/criando-proj-sonarqube.png?raw=true)
+
+- **7.1.6** Informe um repositório local no SonarQube
+
+  ![sonarqube com jenkins](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/sonarqube-proj-loacl.png?raw=true)
+
+- **7.1.7** Gere um token para o repositório
+
+  ![criando token sonarqube](https://github.com/T0mAlexander/CICD-Alura/blob/screenshots/token-sonarqube.png?raw=true)
+
+- **7.1.8** Guarde o token gerado
+
+  ![token gerado](https://raw.githubusercontent.com/T0mAlexander/CICD-Alura/screenshots/token-gerado-sonarqube.png)
+
+  >**Token:** sqp_cc20bb1c1e99ed7e54fbefb568a99edf9c4ee380
+
+- **7.1.9** Informe os detalhes do repositório e do código da aplicação
+
+  ![analisando repositorio](https://raw.githubusercontent.com/T0mAlexander/CICD-Alura/screenshots/repo-link-sonarqube.png)
+
+- **7.2** Crie um trabalho no Jenkins para o Sonarqube e vincule ao mesmo repositório Git que usamos no primeiro trabalho
+
+  ![repo link sonarqube](https://raw.githubusercontent.com/T0mAlexander/CICD-Alura/screenshots/repo-link-sonarqube.png)
+
+  > **Extras:** habilite o **"*Poll SCM*"** e insira o valor `* * * * *` (Checagem por minuto) e **"*Delete workspace before build starts*"** (exclusão prévia do workspace antes da build)
+
+- **7.2.1** Adicione um passo de build com o seguinte shell script
+
+  ```bash
+  #!/bin/bash
+  echo "-------------- Baixando o Sonarqube --------------"
+  wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip && \
+  echo "--------------------------------------------------"
+
+  echo "-------------- Descompactando o scanner --------------"
+  unzip sonar-scanner-cli-4.7.0.2747-linux.zip && \
+  echo "------------------------------------------------------"
+
+  echo "-------------- Rodando o Scanner --------------"
+  ./sonar-scanner-4.7.0.2747-linux/bin/sonar-scanner -X
+  -Dsonar.projectKey=<NOME-DO-PROJETO> \
+  -Dsonar.sources=. \
+  -Dsonar.host.url=<IP-DA-MÁQUINA>:9000 \
+  -Dsonar.login=<TOKEN-SONARQUBE> && \
+  echo "------------------------------------------------"
+  ```
+
+- **7.2.2** Como resultado final, você verá as métricas de qualidade e vulnerabilidade do código proveniente do seu repositório
+
+  ![SonarQube Métricas Finais](https://raw.githubusercontent.com/T0mAlexander/CICD-Alura/screenshots/sonarqube-metricas-finais.png)
+
+  > **Dica:** você pode ver mais detalhes clicando no nome do projeto
