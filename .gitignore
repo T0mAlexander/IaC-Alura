@@ -1,2 +1,7 @@
-# Folders
-.vagrant/
+# Pastas
+.infracost/
+.terraform/
+
+# Arquivos
+.terraform*
+terraform.*
