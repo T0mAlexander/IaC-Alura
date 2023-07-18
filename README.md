@@ -15,8 +15,6 @@ Branch relacionada ao curso **Infraestrutura como código: preparando máquinas 
 
 ### 1. Gere uma nova chave SSH
 
-  - **1.1**
-
   ```bash
   ssh-keygen -f <nome-da-chave> -t rsa
   ```
