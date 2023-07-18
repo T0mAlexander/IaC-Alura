@@ -20,7 +20,3 @@ Branch relacionada ao curso **Infraestrutura como código: preparando máquinas 
   ```bash
   ssh-keygen -f <nome-da-chave> -t rsa
   ```
-
-### 2. Importe a chave para a AWS
-
-  ![Importando a chave]()
