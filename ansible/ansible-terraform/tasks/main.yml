@@ -1,0 +1,29 @@
+---
+- name: Instalando Python3 e VirtualEnv
+  ansible.builtin.apt:
+    name:
+      - python3
+      - virtualenv
+    update_cache: true
+  become: true
+
+- name: Instalando dependências com o PIP
+  ansible.builtin.pip:
+    virtualenv: /home/ubuntu/python/virtual-env
+    name:
+      - django
+      - djangorestframework
+
+- name: Criando um projeto com o Django
+  ansible.builtin.shell:
+    cmd: |
+      source /home/ubuntu/python/virtual-env/bin/activate &&
+      django-admin startproject app /home/ubuntu/python/
+    executable: /bin/bash
+
+- name: Permitindo todos os hosts no arquivo settings.py
+  ansible.builtin.lineinfile:
+    path: /home/ubuntu/python/app/settings.py
+    regexp: 'ALLOWED_HOSTS'
+    line: "ALLOWED_HOSTS = ['*']"
+    backrefs: true

@@ -1,0 +1,6 @@
+- hosts: ansible-terraform
+  tasks:
+    - name: Importando as tarefas
+      ansible.builtin.import_role:
+        name: ansible-terraform
+        tasks_from: main
