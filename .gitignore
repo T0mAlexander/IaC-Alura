@@ -1,6 +1,8 @@
 # Pastas
 .infracost/
 .terraform/
+.vscode/
+keys/
 
 # Arquivos
 .terraform*
