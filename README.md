@@ -9,7 +9,7 @@ Branch relacionada ao curso **Infraestrutura como código: preparando máquinas 
 - [**Ansible**](https://developer.hashicorp.com/vagrant/downloads) instalado na máquina com versão mínima em 2.14.x
 - [**Terraform**](https://www.virtualbox.org/wiki/Downloads) instalado na máquina com versão mínima em 1.5.x
 - [**Python**](https://www.virtualbox.org/wiki/Downloads) instalado na máquina com versão mínima em 3.11.x
-- [**AWS CLI**](https://docs.aws.amazon.com/pt_br/cli/latest/userguide/getting-started-install.html) instalado na máquina com versão mínima em 2.11.x
+- [**AWS CLI**](https://docs.aws.amazon.com/pt_br/cli/latest/userguide/getting-started-install.html) instalado na máquina com versão mínima em 2.11.x (opcional)
 
 ## Instruções de uso
 
