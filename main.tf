@@ -16,12 +16,12 @@ resource "aws_instance" "server" {
   instance_type = "t2.micro"              # Instância do Free Tier da AWS
   key_name      = var.ssh-key
 
-  user_data = <<-EOF
-  #!/bin/bash
-  cd /home/ubuntu
-  echo "<h1>Ola, Ansible e Terraform</h1>" > index.html
-  nohup busybox httpd -f -p 8080 &
-  EOF
+  # user_data = <<-EOF
+  # #!/bin/bash
+  # cd /home/ubuntu
+  # echo "<h1>Ola, Ansible e Terraform</h1>" > index.html
+  # nohup busybox httpd -f -p 8080 &
+  # EOF
 
   root_block_device {
     volume_size           = 30
@@ -32,6 +32,6 @@ resource "aws_instance" "server" {
   vpc_security_group_ids = [ aws_security_group.ssh-access.id ]
 
   tags = {
-    "name" = "instância-1"
+    "name" = "Ansible Terraform Python"
   }
 }
