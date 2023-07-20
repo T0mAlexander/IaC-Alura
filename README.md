@@ -283,3 +283,135 @@ Branch relacionada ao curso **Infraestrutura como código: preparando máquinas 
   source python/virtual-env/bin/activate &&
   python python/manage.py runserver 0.0.0.0:8000
   ```
+
+  - **8.4** Crie uma tarefa de verificação de um projeto Django conforme o código abaixo:
+
+  ```yml
+  - name: Verificando existência prévia de um projeto Django
+  ansible.builtin.stat:
+    path: /home/ubuntu/python/app/settings.py
+  register: app_django
+
+  - name: Criando um projeto com o Django
+    ansible.builtin.shell:
+      cmd: |
+        source /home/ubuntu/python/virtual-env/bin/activate &&
+        django-admin startproject app /home/ubuntu/python/
+      executable: /bin/bash
+    when: not app_django.stat.exists
+  ```
+
+## 9. Separando ambientes de trabalho
+
+  - **9.1** Crie uma instância EC2 para ambiente de produção no Terraform
+
+  ```terraform
+  resource "aws_instance" "prod" {
+    ami           = "ami-0af6e9042ea5a4e3e" # Ubuntu Server 22.04 LTS
+    instance_type = "t2.micro"              # Instância do Free Tier da AWS
+    key_name      = var.ssh-key
+    
+    vpc_security_group_ids = [aws_security_group.ssh-access.id]
+
+    tags = {
+      "name" = "Máquina de Produção"
+    }
+  }
+  ```
+
+  - **9.2.1** No arquivo de hosts, insira as informações da instância EC2 de produção
+
+  ```yml
+  <host-de-produção>:
+  ansible_host: <ip-público>
+  ansible_user: ubuntu
+  ansible_ssh_private_key_file: caminho/da/chave
+  ```
+
+  - **9.2.2** Crie uma função para a máquina de produção e crie a seguinte sequência de tarefas
+
+  ```yml
+  ---
+  - name: Instalando Python3 e VirtualEnv
+    ansible.builtin.apt:
+      name:
+        - python3
+        - virtualenv
+      update_cache: true
+    become: true
+
+  # ---------------------- Tarefa nova ---------------------------
+  - name: Clonando o repositório Git
+    ansible.builtin.git:
+      repo: 'https://github.com/alura-cursos/clientes-leo-api.git'
+      dest: /home/ubuntu/python/
+      version: master
+      force: true
+  # ---------------------------------------------------------------
+
+  # ------------------- Tarefa modificada -------------------------
+  - name: Instalando dependências com o PIP
+    ansible.builtin.pip:
+      virtualenv: /home/ubuntu/python/virtual-env
+      requirements: /home/ubuntu/python/requirements.txt
+
+  - name: Verificando existência prévia de um projeto Django
+    ansible.builtin.stat:
+      path: /home/ubuntu/python/setup/settings.py
+    register: app_django
+  #-----------------------------------------------------------------
+
+  - name: Criando um projeto com o Django
+    ansible.builtin.shell:
+      cmd: |
+        source /home/ubuntu/python/virtual-env/bin/activate &&
+        django-admin startproject setup /home/ubuntu/python/
+      executable: /bin/bash
+    when: not app_django.stat.exists
+
+  - name: Permitindo todos os hosts no arquivo settings.py
+    ansible.builtin.lineinfile:
+      path: /home/ubuntu/python/app/settings.py
+      regexp: 'ALLOWED_HOSTS'
+      line: "ALLOWED_HOSTS = ['*']"
+      backrefs: true
+
+  - name: Configurando o banco de dados
+  ansible.builtin.shell:
+    cmd: |
+      source /home/ubuntu/python/virtual-env/bin/activate &&
+      python3 /home/ubuntu/python/manage.py migrate
+    executable: /bin/bash
+
+  - name: Carregando os dados iniciais
+    ansible.builtin.shell:
+      cmd: |
+        source /home/ubuntu/python/virtual-env/bin/activate &&
+        python3 /home/ubuntu/python/manage.py loaddata clientes.json
+      executable: /bin/bash
+  ```
+  
+  - **9.2.3** No arquivo de roteiro (playbook), atribua as tarefas ao host de produção e execute o roteiro
+
+  ```yml
+  - hosts: <host-de-produção>
+  tasks:
+    - name: Importando as tarefas da máquina de produção
+      ansible.builtin.import_role:
+        name: <host-de-produção>
+        tasks_from: main
+  ```
+
+  - **9.3** Crie uma tarefa para instanciar o servidor de produção
+
+  ```yml
+  - name: Instanciando o servidor de produção
+  ansible.builtin.shell:
+    cmd: |
+      source /home/ubuntu/python/virtual-env/bin/activate &&
+      nohup python3 /home/ubuntu/python/manage.py runserver 0.0.0.0:8000 &
+    executable: /bin/bash
+  ```
+
+  > **Nota:** ao acessar a aplicação, você deverá ver esta interface. Você pode clicar na URL em vermelho para ver a lista de clientes
+  > ![App em produção](https://raw.githubusercontent.com/T0mAlexander/CICD-Alura/screenshots/ansible-terraform/django-app-produ%C3%A7%C3%A3o.png)
