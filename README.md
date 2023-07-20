@@ -4,6 +4,13 @@
 
 Branch relacionada ao curso **Infraestrutura como código: preparando máquinas na AWS com Ansible e Terraform** da Alura
 
+## Mapa do Projeto
+
+  <div align="center">
+  
+  ![Mapa do Projeto](/map.png)
+  </div>
+
 ## Pré-requisitos
 
 - [**Ansible**](https://developer.hashicorp.com/vagrant/downloads) instalado na máquina com versão mínima em 2.14.x
