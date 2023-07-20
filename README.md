@@ -8,7 +8,7 @@ Branch relacionada ao curso **Infraestrutura como código: preparando máquinas 
 
   <div align="center">
   
-  ![Mapa do Projeto](./project-map.svg)
+  ![Mapa do Projeto](/project-map.svg)
   </div>
 
 ## Pré-requisitos
