@@ -17,7 +17,7 @@
 - name: Verificando existência prévia de um projeto Django
   ansible.builtin.stat:
     path: /home/ubuntu/python/app/settings.py
-    register: app-django
+  register: app_django
 
 - name: Criando um projeto com o Django
   ansible.builtin.shell:
@@ -25,7 +25,7 @@
       source /home/ubuntu/python/virtual-env/bin/activate &&
       django-admin startproject app /home/ubuntu/python/
     executable: /bin/bash
-    when: not app-django.stat.exists
+  when: not app_django.stat.exists
 
 - name: Permitindo todos os hosts no arquivo settings.py
   ansible.builtin.lineinfile:
