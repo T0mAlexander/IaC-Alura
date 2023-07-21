@@ -23,7 +23,7 @@ Branch relacionada ao curso **Infraestrutura como código: preparando máquinas 
 ### 1. Gere uma nova chave SSH
 
   ```bash
-  ssh-keygen -f <nome-da-chave> -t rsa
+  chave-sshgen -f <nome-da-chave> -t rsa
   ```
 
 ### 2. Importe a chave para a AWS
@@ -309,7 +309,7 @@ Branch relacionada ao curso **Infraestrutura como código: preparando máquinas 
   resource "aws_instance" "prod" {
     ami           = "ami-0af6e9042ea5a4e3e" # Ubuntu Server 22.04 LTS
     instance_type = "t2.micro"              # Instância do Free Tier da AWS
-    key_name      = var.ssh-key
+    key_name      = var.<chave-ssh>
     
     vpc_security_group_ids = [aws_security_group.ssh-access.id]
 
@@ -415,3 +415,115 @@ Branch relacionada ao curso **Infraestrutura como código: preparando máquinas 
 
   > **Nota:** ao acessar a aplicação, você deverá ver esta interface. Você pode clicar na URL em vermelho para ver a lista de clientes
   > ![App em produção](https://raw.githubusercontent.com/T0mAlexander/CICD-Alura/screenshots/ansible-terraform/django-app-produ%C3%A7%C3%A3o.png)
+
+## 10. Aplicando conceitos de infraestrutura elástica
+
+  - **10.1** Crie um template de instância EC2 em um arquivo separado
+
+  ```terraform
+  resource "aws_launch_template" "<nome-qualquer>" {
+    image_id      = <sistema-operacional>    # Ubuntu Server 22.04 LTS
+    instance_type = <tipo-da-instância>      # Instância do Free Tier da AWS
+    key_name      = <chave-ssh>
+
+    vpc_security_group_ids = [<nome-grupo-de-segurança]>
+  }
+  ```
+
+  - **10.1.1** Crie um grupo de escalonamento automático
+
+  ```terraform
+  resource "aws_autoscaling_group" "<nome-qualquer>" {
+    name = "<nome-qualquer>"
+    availability_zones = [ "<zona>" ]
+    min_size = <valor-numérico>
+    max_size = <valor-numérico>
+
+    launch_template {
+      id = aws_launch_template.<nome>.id
+      version = "$Latest"
+    }
+  }
+  ```
+
+  - **10.1.2** Crie uma pasta chamada `modules` e crie uma subpasta chamada `machines`
+
+  ```bash
+  mkdir -p modules/machines
+  ```
+
+  - **10.1.3** Crie 2 subpastas dentro da pasta `machines` chamada `dev` e `prod`
+
+  ```bash
+  mkdir modules/machines/dev && mkdir modules/machines/prod
+  ```
+
+  - **10.1.4** Crie 2 arquivos de módulos do Terraform para cada máquina
+
+  ```bash
+  touch modules/machines/dev/<nome-qualquer> && touch modules/machines/prod/<nome-qualquer>
+  ```
+
+  - **10.1.5** Insira os seguintes módulos para cada máquina
+
+  ```terraform
+  # Máquina de Desenvolvimento
+
+  module "dev" {
+    source            = "../../../"
+    regiao            = "<regiao-aws>"
+    tipo_da_instancia = "t2.micro"
+    chave             = "<nome-da-chave>"
+    grupo_seg         = "dev"
+    autoscale_min     = 1
+    autoscale_max     = 3
+  }
+  
+  # Máquina de Produção
+
+  module "prod" {
+    source            = "../../../"
+    regiao            = "<regiao-aws>"
+    tipo_da_instancia = "t2.micro"
+    chave             = "<nome-da-chave>"
+    grupo_seg         = "prod"
+    autoscale_min     = 1
+    autoscale_max     = 5
+  }
+  ```
+
+  > **Lembrete:** cada módulo deve ser inserido no arquivo de cada maquina respectiva criado anteriormente
+
+  - **10.1.6** Crie novas variáveis no arquivo `vars.tf`
+
+  ```terraform
+  variable "regiao" {
+    type = string
+  }
+
+  variable "tipo_da_instancia" {
+    type = string
+  }
+
+  variable "chave" {
+    type = string
+  }
+
+  variable "grupo_seg" {
+    type = string
+  }
+
+  variable "autoscale_min" {
+    type = number
+  }
+
+  variable "autoscale_max" {
+    type = number
+  }
+  ```
+
+  - **10.2** Acesse a pasta da máquina de produção e inicie o módulo
+
+  ```bash
+  cd modules/machines/prod && terraform init
+  ```
