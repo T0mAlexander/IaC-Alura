@@ -1,4 +1,4 @@
-resource "aws_security_group" "ssh-access" {
+resource "aws_security_group" "global-security-group" {
   name        = "ssh-access"
   description = "Allow SSH traffic"
 
@@ -18,6 +18,6 @@ resource "aws_security_group" "ssh-access" {
   }
 
   tags = {
-    Name = "ssh"
+    Name = "Grupo de Segurança Geral"
   }
 }
