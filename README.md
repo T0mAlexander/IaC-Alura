@@ -416,7 +416,7 @@ Branch relacionada ao curso **Infraestrutura como código: preparando máquinas 
   > **Nota:** ao acessar a aplicação, você deverá ver esta interface. Você pode clicar na URL em vermelho para ver a lista de clientes
   > ![App em produção](https://raw.githubusercontent.com/T0mAlexander/CICD-Alura/screenshots/ansible-terraform/django-app-produ%C3%A7%C3%A3o.png)
 
-## 10. Aplicando conceitos de infraestrutura elástica
+## 10. Autoscaling Group e infraestrutura elástica
 
   - **10.1** Crie um template de instância EC2 em um arquivo separado
 
@@ -426,7 +426,7 @@ Branch relacionada ao curso **Infraestrutura como código: preparando máquinas 
     instance_type = <tipo-da-instância>      # Instância do Free Tier da AWS
     key_name      = <chave-ssh>
 
-    vpc_security_group_ids = [<nome-grupo-de-segurança]>
+    security_group_names = [ var.<nome-variavel-grupo-seg> ]
   }
   ```
 
@@ -434,7 +434,7 @@ Branch relacionada ao curso **Infraestrutura como código: preparando máquinas 
 
   ```terraform
   resource "aws_autoscaling_group" "<nome-qualquer>" {
-    name = "<nome-qualquer>"
+    name = var.nome_do_agrupamento
     availability_zones = [ "<zona>" ]
     min_size = <valor-numérico>
     max_size = <valor-numérico>
@@ -477,6 +477,7 @@ Branch relacionada ao curso **Infraestrutura como código: preparando máquinas 
     grupo_seg         = "dev"
     autoscale_min     = 1
     autoscale_max     = 3
+    nome_do_agrupamento = "<nome>
   }
   
   # Máquina de Produção
@@ -489,6 +490,7 @@ Branch relacionada ao curso **Infraestrutura como código: preparando máquinas 
     grupo_seg         = "prod"
     autoscale_min     = 1
     autoscale_max     = 5
+    nome_do_agrupamento = "<nome>
   }
   ```
 
@@ -509,6 +511,10 @@ Branch relacionada ao curso **Infraestrutura como código: preparando máquinas 
     type = string
   }
 
+  variable "nome_do_agrupamento" {
+    type = string
+  }
+
   variable "grupo_seg" {
     type = string
   }
@@ -526,4 +532,174 @@ Branch relacionada ao curso **Infraestrutura como código: preparando máquinas 
 
   ```bash
   cd modules/machines/prod && terraform init
+  ```
+
+  > **Dica:** experimente encerrar a instância manualmente para ver o que acontece
+
+  - **10.3** Na mesma pasta do módulo da máquina de produção, crie um arquivo de script
+
+  ```bash
+  touch <nome-do-script>.sh
+  ```
+
+  > **Sugestão:** crie uma pasta chamada `scripts` e coloque o arquivo dentro
+
+  - **10.3.1** Dentro do arquivo de script, insira o código abaixo:
+
+<details>
+  <summary>Código</summary>
+
+  ```shell
+  #!/bin/bash
+  cd /home/ubuntu/
+  curl -fsSL https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+  sudo python3 get-pip.py
+  sudo python3 -m pip install ansible
+  tee -a playbook.yml > /dev/null <<EOT
+  - hosts: localhost
+    tasks:
+    - name: Instalando Python3 e VirtualEnv
+      ansible.builtin.apt:
+        name:
+          - python3
+          - virtualenv
+        update_cache: true
+      become: true
+
+    - name: Clonando o repositório Git
+      ansible.builtin.git:
+        repo: 'https://github.com/alura-cursos/clientes-leo-api.git'
+        dest: /home/ubuntu/python/
+        version: master
+        force: true
+
+    - name: Instalando dependências com o PIP
+      ansible.builtin.pip:
+        virtualenv: /home/ubuntu/python/virtual-env
+        requirements: /home/ubuntu/python/requirements.txt
+
+    - name: Verificando existência prévia de um projeto Django
+      ansible.builtin.stat:
+        path: /home/ubuntu/python/setup/settings.py
+      register: app_django
+
+    - name: Criando um projeto com o Django
+      ansible.builtin.shell:
+        cmd: |
+          source /home/ubuntu/python/virtual-env/bin/activate &&
+          django-admin startproject setup /home/ubuntu/python/
+        executable: /bin/bash
+      when: not app_django.stat.exists
+
+    - name: Permitindo todos os hosts no arquivo settings.py
+      ansible.builtin.lineinfile:
+        path: /home/ubuntu/python/setup/settings.py
+        regexp: 'ALLOWED_HOSTS'
+        line: "ALLOWED_HOSTS = ['*']"
+        backrefs: true
+
+    - name: Configurando o banco de dados
+      ansible.builtin.shell:
+        cmd: |
+          source /home/ubuntu/python/virtual-env/bin/activate &&
+          python3 /home/ubuntu/python/manage.py migrate
+        executable: /bin/bash
+
+    - name: Carregando os dados iniciais
+      ansible.builtin.shell:
+        cmd: |
+          source /home/ubuntu/python/virtual-env/bin/activate &&
+          python3 /home/ubuntu/python/manage.py loaddata clientes.json
+        executable: /bin/bash
+
+    - name: Instanciando o servidor de produção
+      ansible.builtin.shell:
+        cmd: |
+          source /home/ubuntu/python/virtual-env/bin/activate &&
+          nohup python3 /home/ubuntu/python/manage.py runserver 0.0.0.0:8000 &
+        executable: /bin/bash
+  EOT
+  ansible-playbook playbook.yml
+  ```
+
+</details>
+
+  - **10.3.2** No template de instâncias, informe o caminho do script
+
+  ```terraform
+  # launch-template.tf
+
+  user_data = filebase64("./caminho/absoluto/do/script")
+  ```
+
+## 11. Configurando o balanceador de carga (Load Balancer)
+
+  - **11.1** Crie uma variável de zona alternativa da AWS e atribua ao Autoscaling Group
+
+  ```terraform
+  # vars.tf
+
+  variable "<zona-c>" {
+    type = string
+    default = "sa-east-1c"
+  }
+
+  # auto-scaling.tf
+
+  availability_zones = [ "${var.<zona-a>}, ${var.<zona-c>}" ]
+  ```
+
+  - **11.2** Crie um arquivo chamado `subnets.tf` duas sub-redes para cada zona da AWS
+
+  ```terraform
+  resource "aws_default_subnet" "subnet_1" {
+    availability_zone = var.<zona-a>
+  }
+
+  resource "aws_default_subnet" "subnet_2" {
+    availability_zone = var.<zona-c>
+  }
+  ```
+
+  - **11.3** Crie uma VPC, Load Balancer, alvo e entrada do balanceador
+
+  ```terraform
+  # vpc.tf
+
+  resource "aws_default_vpc" "<nome>" {
+  }
+
+  # load-balancer.tf
+  resource "aws_lb" "<nome>" {
+    internal = false
+    security_groups = [ aws_security_group.<nome>.id ]
+    subnets = [ aws_default_subnet.<subnet-1>.id, aws_default_subnet.<subnet-2>.id ]
+  }
+
+  resource "aws_lb_target_group" "<nome>" {
+    name = "<nome>"
+    port = "8000"
+    protocol = "HTTP"
+    vpc_id = aws_default_vpc.<nome-vpc>.id
+  }
+
+  resource "aws_lb_listener" "entrada-lb" {
+    load_balancer_arn = aws_lb.load-balancer.arn
+    port = "8000"
+    protocol = "HTTP"
+
+    default_action {
+      type = "forward"
+      target_group_arn = aws_lb_target_group.alvo-lb.arn
+    }
+  }
+  ```
+
+  - **11.3.1** Referencie o alvo do balanceador no grupo de auto escalonamento
+
+  ```terraform
+  # auto-scaling.tf
+  [...]
+
+  target_group_arns = [ aws_lb_target_group.<nome-do-alvo-lb>.arn ]
   ```
