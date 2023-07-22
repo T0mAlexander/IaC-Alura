@@ -3,13 +3,18 @@ variable "regiao" {
 }
 
 variable "america-do-sul" {
-  type = string
+  type    = string
   default = "sa-east-1"
 }
 
 variable "sao-paulo" {
-  type = string
+  type    = string
   default = "sa-east-1a"
+}
+
+variable "sao-paulo-c" {
+  type    = string
+  default = "sa-east-1c"
 }
 
 variable "chave" {
@@ -17,8 +22,12 @@ variable "chave" {
 }
 
 variable "chave-ssh" {
-  type = string
+  type    = string
   default = "ansible-terraform"
+}
+
+variable "nome_do_agrupamento" {
+  type = string
 }
 
 variable "grupo_seg" {
@@ -26,12 +35,12 @@ variable "grupo_seg" {
 }
 
 variable "cidr-remote-access" {
-  type = list(string)
+  type    = list(string)
   default = ["0.0.0.0/0"]
 }
 
 variable "ubuntu" {
-  type = string
+  type    = string
   default = "ami-0af6e9042ea5a4e3e"
 }
 
@@ -40,7 +49,7 @@ variable "tipo_da_instancia" {
 }
 
 variable "free-tier" {
-  type = string
+  type    = string
   default = "t2.micro"
 }
 

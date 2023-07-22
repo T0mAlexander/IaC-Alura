@@ -1,7 +1,10 @@
 resource "aws_launch_template" "maquina" {
+  name_prefix = "maquina"
   image_id      = var.ubuntu    # Ubuntu Server 22.04 LTS
   instance_type = var.free-tier # Instância do Free Tier da AWS
-  key_name      = var.chave-ssh
+  key_name      = var.chave
 
-  vpc_security_group_ids = [aws_security_group.global-security-group.id]
+  security_group_names = [ var.grupo_seg ]
+
+  user_data = filebase64("/home/tom/Documents/Projetos/CICD-Alura/terraform/scripts/ansible.sh")
 }

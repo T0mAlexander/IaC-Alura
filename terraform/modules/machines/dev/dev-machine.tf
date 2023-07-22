@@ -6,4 +6,5 @@ module "dev" {
   grupo_seg         = "dev"
   autoscale_min     = 1
   autoscale_max     = 3
+  nome_do_agrupamento = "desenvolvimento"
 }

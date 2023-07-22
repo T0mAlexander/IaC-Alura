@@ -1,7 +1,5 @@
 resource "aws_security_group" "global-security-group" {
-  name        = "ssh-access"
-  description = "Allow SSH traffic"
-
+  name = var.grupo_seg
   # Regra para permitir todo o tráfego
   ingress {
     from_port   = 0
