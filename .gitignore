@@ -3,6 +3,7 @@
 .terraform/
 .vscode/
 keys/
+__pycache__/
 
 # Arquivos
 .terraform*
