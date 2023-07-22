@@ -1,0 +1,70 @@
+#!/bin/bash
+cd /home/ubuntu/
+curl -fsSL https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+sudo python3 get-pip.py
+sudo python3 -m pip install ansible
+tee -a playbook.yml > /dev/null <<EOT
+- hosts: localhost
+  tasks:
+  - name: Instalando Python3 e VirtualEnv
+    ansible.builtin.apt:
+      name:
+        - python3
+        - virtualenv
+      update_cache: true
+    become: true
+
+  - name: Clonando o repositório Git
+    ansible.builtin.git:
+      repo: 'https://github.com/alura-cursos/clientes-leo-api.git'
+      dest: /home/ubuntu/python/
+      version: master
+      force: true
+
+  - name: Instalando dependências com o PIP
+    ansible.builtin.pip:
+      virtualenv: /home/ubuntu/python/virtual-env
+      requirements: /home/ubuntu/python/requirements.txt
+
+  - name: Verificando existência prévia de um projeto Django
+    ansible.builtin.stat:
+      path: /home/ubuntu/python/setup/settings.py
+    register: app_django
+
+  - name: Criando um projeto com o Django
+    ansible.builtin.shell:
+      cmd: |
+        source /home/ubuntu/python/virtual-env/bin/activate &&
+        django-admin startproject setup /home/ubuntu/python/
+      executable: /bin/bash
+    when: not app_django.stat.exists
+
+  - name: Permitindo todos os hosts no arquivo settings.py
+    ansible.builtin.lineinfile:
+      path: /home/ubuntu/python/setup/settings.py
+      regexp: 'ALLOWED_HOSTS'
+      line: "ALLOWED_HOSTS = ['*']"
+      backrefs: true
+
+  - name: Configurando o banco de dados
+    ansible.builtin.shell:
+      cmd: |
+        source /home/ubuntu/python/virtual-env/bin/activate &&
+        python3 /home/ubuntu/python/manage.py migrate
+      executable: /bin/bash
+
+  - name: Carregando os dados iniciais
+    ansible.builtin.shell:
+      cmd: |
+        source /home/ubuntu/python/virtual-env/bin/activate &&
+        python3 /home/ubuntu/python/manage.py loaddata clientes.json
+      executable: /bin/bash
+
+  - name: Instanciando o servidor de produção
+    ansible.builtin.shell:
+      cmd: |
+        source /home/ubuntu/python/virtual-env/bin/activate &&
+        nohup python3 /home/ubuntu/python/manage.py runserver 0.0.0.0:8000 &
+      executable: /bin/bash
+EOT
+ansible-playbook playbook.yml
