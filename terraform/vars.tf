@@ -60,3 +60,7 @@ variable "autoscale_min" {
 variable "autoscale_max" {
   type = number
 }
+
+variable "prod" {
+  type = bool
+}

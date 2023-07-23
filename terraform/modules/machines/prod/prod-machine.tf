@@ -7,4 +7,5 @@ module "prod" {
   autoscale_min       = 1
   autoscale_max       = 5
   nome_do_agrupamento = "prod"
+  prod                = true
 }
