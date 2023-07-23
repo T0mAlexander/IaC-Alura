@@ -2,7 +2,11 @@
 
 ## Descrição
 
-Branch relacionada ao curso **Infraestrutura como código: preparando máquinas na AWS com Ansible e Terraform** da Alura
+Cursos da Alura relacionados a esta ramificação:
+
+**I**. Infraestrutura como código: preparando máquinas na AWS com Ansible e Terraform <br>
+**II**. Infraestrutura como código: separando ambientes na AWS com Ansible e Terraform <br>
+**III**. Infraestrutura como código: montando uma infraestrutura elástica na AWS
 
 ## Mapa do Projeto
 
