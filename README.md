@@ -695,11 +695,126 @@ Branch relacionada ao curso **Infraestrutura como código: preparando máquinas 
   }
   ```
 
-  - **11.3.1** Referencie o alvo do balanceador no grupo de auto escalonamento
+  - **11.3.1** Referencie o alvo do balanceador no grupo de auto escalonamento e inicialize a infraestrutura
 
   ```terraform
   # auto-scaling.tf
   [...]
 
   target_group_arns = [ aws_lb_target_group.<nome-do-alvo-lb>.arn ]
+  ```
+
+  - **11.3.2** Crie uma politica do Auto Scaling
+
+  ```terraform
+  resource "aws_autoscaling_policy" "<nome>" {
+    name = "<nome>"
+    autoscaling_group_name = var.nome_do_agrupamento
+    policy_type = "TargetTrackingScaling"
+
+    target_tracking_configuration {
+      predefined_metric_specification {
+        predefined_metric_type = "ASGAverageCPUUtilization" // Consumo médio da CPU
+      }
+
+      target_value = 50.0 // Taxa de consumo da CPU
+    }
+  }
+  ```
+
+  - **11.4** Faça um teste de carga instalando o Locust
+
+  ```python
+  pip install locust
+  ```
+
+  - **11.4.1** Crie um arquivo em Python para configurar o locust
+
+  ```python
+  from locust import FastHttpUser, task
+
+  class WebsiteUser(FastHttpUser):
+    host = "http://localhost:8089"
+
+    @task
+    def index(self):
+      self.client.get("/")
+  ```
+
+  - **11.4.2** Inicialize o Locust
+
+  ```bash
+  python3 -m locust -f <arquivo-de-teste>.py
+  ```
+
+  > **Nota:** o painel do Locust será hospedado na [**localhost:8089**](http://localhost:8089)
+
+  - **11.4.3** Vá até o painel da AWS e copie a url do DNS do Balanceador de Carga
+
+  ![link load balancer](https://raw.githubusercontent.com/T0mAlexander/CICD-Alura/screenshots/ansible-terraform/dns-load-balancer.png)
+
+  - **11.4.4** No painel do Locust, insira a url do DNS do Balanceador de Carga e os parametros abaixo e inicie o teste
+
+  ![params teste](https://raw.githubusercontent.com/T0mAlexander/CICD-Alura/screenshots/ansible-terraform/teste-de-carga.png)
+
+  > **Lembrete:** não esqueça de começar a url com o `http://` e informar a porta 8000 no final da URL do balanceador de carga
+
+  - **11.4.5** Monitore o consumo de CPU com a ferramenta `htop` na instância EC2
+
+  ![htop ec2](https://raw.githubusercontent.com/T0mAlexander/CICD-Alura/screenshots/ansible-terraform/htop-maquina-virtual.png)
+
+  - **11.4.6** No painel de instâncias da EC2, uma nova instância será iniciada automaticamente para aliviar o tráfego
+
+  ![segunda instancia](https://raw.githubusercontent.com/T0mAlexander/CICD-Alura/screenshots/ansible-terraform/segunda-instancia.png)
+
+  > **Dica:** é uma boa prática manter 2 instâncias como tamanho mínimo do grupo de auto escalonamento
+
+## 12. Atualizando o ambiente de desenvolvimento
+
+  - **12.1** Crie uma nova variável no Terraform para distinção de ambientes de trabalho
+
+  ```terraform
+  # vars.tf
+
+  variable "prod" {
+    type = bool
+  }
+  ```
+
+  - **12.2** Atribua um valor a essa variável no módulo de desenvolvimento
+
+  ```terraform
+  # dev-machine.tf
+
+  // Resto do código acima
+
+  prod = false
+
+  # prod-machine.tf
+
+  // Resto do código acima
+
+  prod = true
+  ```
+
+  - **12.3** Crie uma condicional na opção de carregamento de script em diversos recursos para diferenciar as necessidades
+
+  ```terraform
+  # launch-template.tf
+
+  // Resto do código
+
+  user_data = var.prod ? ("caminho/absoluto/do/script") : ""
+
+  # auto-scaling.tf
+
+  // Resto do código
+
+  target_group_arns = var.prod ? [aws_lb_target_group.<nome>.arn] : []
+
+  # load-balancer
+
+  // Resto do código
+
+  count = var.prod ? 1 : 0
   ```
