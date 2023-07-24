@@ -1,11 +1,5 @@
 # Pastas
-.infracost/
 .terraform/
-.vscode/
-keys/
-__pycache__/
 
 # Arquivos
 .terraform*
-terraform.*
-cloud-state.tf
