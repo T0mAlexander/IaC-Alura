@@ -3,6 +3,7 @@
 Cursos da Alura relacionados a esta ramificação
 
 **I.** Infraestrutura como código: Docker e Elastic Beanstalk na AWS
+
 **II.** Infraestrutura como código: Terraform, Docker e Elastic Container Service
 
 ## 🔧 Ferramentas
