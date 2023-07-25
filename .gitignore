@@ -1,5 +1,20 @@
 # Pastas
 .terraform/
+__pycache__/
+env/
+ENV/
+venv/
+env.bak/
+venv.bak/
 
 # Arquivos
 .terraform*
+*.log
+*.pot
+*.pyc
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media
+.env
+.venv

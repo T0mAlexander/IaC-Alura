@@ -1,9 +1,11 @@
 module "prod" {
-  source = "../../infra/terraform/aws"
+  source = "../../infra/terraform/aws/"
 
-  nome          = "producao"
-  descricao     = "app-producao"
-  autoscale_max = 5
-  maquina       = "t2.micro"
-  ambiente      = "env-prod"
+  nome_repositorio = "producao"
+  cargo_iam        = "prod"
+  ambiente         = "producao"
+}
+
+output "IP_alb" {
+  value = module.prod.IP
 }
