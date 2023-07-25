@@ -1,4 +1,4 @@
-# Terraform, Docker e AWS
+# Terraform, Docker e Beanstalk 
 
 Cursos da Alura relacionados a esta ramificação
 
