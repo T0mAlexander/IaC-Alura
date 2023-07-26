@@ -1,11 +1,10 @@
 module "prod" {
   source = "../../infra/terraform/aws/"
 
-  nome_repositorio = "producao"
-  cargo_iam        = "prod"
-  ambiente         = "producao"
+  cluster_name     = "cluster-eks-curso"
+  nome_repositorio = "prod"
 }
 
-output "IP_alb" {
-  value = module.prod.IP
+output "endereco" {
+  value = module.prod.url
 }

@@ -1,4 +1,4 @@
-resource "aws_ecr_repository" "foo" {
+resource "aws_ecr_repository" "repositorio" {
   name         = var.nome_repositorio
   force_delete = true
 }

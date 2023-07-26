@@ -1,15 +1,19 @@
-# Terraform, Docker e ECS
+# Terraform e EKS
 
 Cursos da Alura relacionados a esta ramificação
 
 **I.** Infraestrutura como código: Docker e Elastic Beanstalk na AWS
+
+**II.** Infraestrutura como código: Terraform, Docker e Elastic Container Service
+
+**III.** Infraestrutura como código: Terraform e Kubernetes
 
 ## 🔧 Ferramentas
 
 <div>
   <table>
 
-  * ### Infraestrutura e nuvem
+  - ### Infraestrutura e nuvem
     <tr>
       <td align="center">
         <img src="https://res.cloudinary.com/tommello/image/upload/v1687709304/Github/Profile%20Markdown/iconizer-terraform-original_vl0ivu.svg" width="65px"/>
@@ -20,10 +24,10 @@ Cursos da Alura relacionados a esta ramificação
         </sub>
       </td>
       <td align="center">
-        <img src="https://dqw5z6tkg7aeo.cloudfront.net/icon/2eb2930111864beeb409e946751215b1-3ecb316865dc77cffc9cd77eed455da2.svg" style="border-radius: 15px" width="65px"/>
+        <img src="https://dqw5z6tkg7aeo.cloudfront.net/icon/dca66d38fd916317687e1390a420c3fc-bcaecc0c3e268821d570a17049e38cc4.svg" style="border-radius: 15px" width="65px"/>
         <sub>
           <b>
-            <h3>ECS</h3>
+            <h3>EKS</h3>
           </b>
         </sub>
       </td>
@@ -43,13 +47,29 @@ Cursos da Alura relacionados a esta ramificação
           </b>
         </sub>
       </td>
-    </tr>
-    <tr>
       <td align="center">
         <img src="https://dqw5z6tkg7aeo.cloudfront.net/icon/de7db04805a33606a40b897578543648-c0174badf433f1e0148e43426ae8e43a.svg" style="border-radius: 15px" width="65px"/>
         <sub>
           <b>
             <h3>ECR</h3>
+          </b>
+        </sub>
+      </td>
+    </tr>
+    <tr>
+      <td align="center">
+        <img src="https://skillicons.dev/icons?i=docker" style="border-radius: 15px" width="65px"/>
+        <sub>
+          <b>
+            <h3>Docker</h3>
+          </b>
+        </sub>
+      </td>
+      <td align="center">
+        <img src="https://skillicons.dev/icons?i=kubernetes" style="border-radius: 15px" width="65px"/>
+        <sub>
+          <b>
+            <h3>Kubernetes</h3>
           </b>
         </sub>
       </td>
@@ -83,17 +103,15 @@ Cursos da Alura relacionados a esta ramificação
 
 ## ⚙️ Funcionalidades do projeto
 
-- Configuração inicial de um repositório de imagens de container com *Elastic Container Registry* (ECR)
-- Isolamento de rede com o *Virtual Private Cloud* (VPC)
-- Atribuição de cargos, recursos e políticas com IAM Policy
-- Criação de balanceador de carga e encaminhamento da porta da aplicação
-- Criação de cluster do *Elastic Container Service* (ECS) gerenciado pelo Fargate
+- Configuração e criação de um cluster da *Elastic Kubernetes Services* (EKS)
+- Criação de uma rede privada através do *Virtual Private Cloud* (VPC)
+- Deploy da aplicação no cluster EKS com sonda de vitalidade (Liveness Probe)
+- Configuração do balanceador de carga (Load Balancer)
 
 ## ✔️ Práticas e técnicas
 
-- Armazenamento do estado da infraestrutura no Bucket S3 da AWS
-- Aplicação web compilada como imagem Docker
-- Separação de ambientes de desenvolvimento e produção
-- Publicação da imagem Docker da aplicação para o ECR
-- Agrupamento do cluster ECS com tarefas
-- Definição de recursos computacionais (processamento e memória) sob demanda para hospedagem da aplicação
+- Utilização de módulos para gerenciamento do cluster
+- Uso de fontes de dados (data sources) do Terraform de recursos existentes
+- Utilização de provedor alternativo do Kubernetes
+- Configuração do deploy aplicação através do Terraform
+- Criação de saída informando a URL do balanceador de carga
